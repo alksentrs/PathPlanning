@@ -40,6 +40,7 @@ public class ViewMain {
         RRTstar,
         RRTstarSmart,
         RRTstarFN,
+        RRTstarInformed,
         RRTstarFNSmart;
     }
 
@@ -87,9 +88,10 @@ public class ViewMain {
         comboBoxSearchStrategy.addItem("Rapidly Expanding Random Tree Star");
         comboBoxSearchStrategy.addItem("Rapidly Expanding Random Tree Star Smart");
         comboBoxSearchStrategy.addItem("Rapidly Expanding Random Tree Star FN");
+        comboBoxSearchStrategy.addItem("Rapidly Expanding Random Tree Star Informed");
         comboBoxSearchStrategy.addItem("Rapidly Expanding Random Tree Star FN Smart");
 
-        comboBoxSearchStrategy.setSelectedIndex(5);
+        comboBoxSearchStrategy.setSelectedIndex(6);
         strategy = Strategy.RRTstarFNSmart;
 
         comboBoxSearchStrategy.addActionListener(new ActionListener() {
@@ -103,6 +105,7 @@ public class ViewMain {
                 else if(selected.equals("Rapidly Expanding Random Tree Star")) strategy = Strategy.RRTstar;
                 else if(selected.equals("Rapidly Expanding Random Tree Star Smart")) strategy = Strategy.RRTstarSmart;
                 else if(selected.equals("Rapidly Expanding Random Tree Star FN")) strategy = Strategy.RRTstarFN;
+                else if(selected.equals("Rapidly Expanding Random Tree Star Informed")) strategy = Strategy.RRTstarInformed;
                 else if(selected.equals("Rapidly Expanding Random Tree Star FN Smart")) strategy = Strategy.RRTstarFNSmart;
 
                 space.reset();
@@ -183,6 +186,7 @@ public class ViewMain {
         else if(strategy == Strategy.RRTstar) space.addRRTStar(n);
         else if(strategy == Strategy.RRTstarFN) space.addRRTStarFN(n);
         else if(strategy == Strategy.RRTstarSmart) space.addRRTStarSmart(n);
+        else if(strategy == Strategy.RRTstarInformed) space.addRRTStarInformed(n);
         else if(strategy == Strategy.RRTstarFNSmart) space.addRRTStarFNSmart(n);
     }
 }
