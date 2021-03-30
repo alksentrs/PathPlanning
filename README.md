@@ -4,7 +4,10 @@ This repository implements some common path planning algorithms used in robotics
 * PRM - Probabilistic Roadmap;
 * RRT - Rapidly exploring Random Tree;
 * RRT* - Rapidly exploring Random Tree Star;
-* RRT*FN - Rapidly exploring Random Tree Star Fixed Nodes
+* RRT* Smart - Rapidly exploring Random Tree Star Smart;
+* RRT* FN - Rapidly exploring Random Tree Star Fixed Nodes
+* RRT* Informed - Rapidly exploring Random Tree Star Informed;
+* RRT* Smart FN Informed - Rapidly exploring Random Tree Star Samrt Fixed Nodes Informed;
 
 To execute just run the Main class.
 
