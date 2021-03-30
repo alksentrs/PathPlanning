@@ -25,7 +25,8 @@ public class MotionSpace {
     private List<NodePrm> prmPoints = new ArrayList<>();
     private Graph<NodePrm> prmGraph = new Graph<>();
 
-    private List<List<Point2D>> pathSets = new ArrayList<>();
+    private List<Point2D> pathPrm = new ArrayList<>();
+    private NodeRrt pathRrt;
 
     private List<Rectangle> obstacles = new ArrayList<>();
 
@@ -75,7 +76,8 @@ public class MotionSpace {
     public void reset(){
         rrtPoints.clear();
         prmPoints.clear();
-        pathSets.clear();
+        pathPrm.clear();
+        pathRrt = null;
         prmGraph.clear();
         Point2D initialPoint = new Point2D(width/2,height/2);
         rrtPoints.add(new NodeRrt(initialPoint));
@@ -111,8 +113,12 @@ public class MotionSpace {
         return goal;
     }
 
-    public List<List<Point2D>> getPathSets() {
-        return pathSets;
+    public List<Point2D> getPathPrm() {
+        return pathPrm;
+    }
+
+    public NodeRrt getPathRrt() {
+        return pathRrt;
     }
 
     public Graph<NodePrm> getPrmGraph() {
@@ -150,11 +156,7 @@ public class MotionSpace {
             prmPoints.add(new NodePrm(point));
         }
         prmGraph = connect();
-        pathSets.clear();
-        List<Point2D> path = findPrmPath(prmPoints.get(0),prmPoints.get(1));
-        if (null!=path) {
-            pathSets.add(path);
-        }
+        pathPrm = findPrmPath(prmPoints.get(0),prmPoints.get(1));
     }
 
     private List<Point2D> findPrmPath(NodePrm source, NodePrm destination) {
@@ -189,7 +191,12 @@ public class MotionSpace {
         for(int j = 0; j < n; j++){
 
             //Sample
-            Point2D sample = new Point2D(rand.nextInt(width),rand.nextInt(height));
+            Point2D sample;
+            if ((n>1)&&(j==0)&&(null!=goal)) {
+                sample = goal.getPoint();
+            } else {
+                sample = new Point2D(rand.nextInt(width), rand.nextInt(height));
+            }
 
             //Nearest node
             double closestDistance = Double.MAX_VALUE;
@@ -267,7 +274,12 @@ public class MotionSpace {
         for(int j = 0; j < n; j++) {
 
             //Sample
-            Point2D sample = new Point2D(rand.nextInt(width),rand.nextInt(height));
+            Point2D sample;
+            if ((n>1)&&(j==0)&&(null!=goal)) {
+                sample = goal.getPoint();
+            } else {
+                sample = new Point2D(rand.nextInt(width), rand.nextInt(height));
+            }
 
             //Nearest node
             double closestDistance = Double.MAX_VALUE;
@@ -385,7 +397,12 @@ public class MotionSpace {
         for(int j = 0; j < n; j++) {
 
             //Sample
-            Point2D sample = new Point2D(rand.nextInt(width),rand.nextInt(height));
+            Point2D sample;
+            if ((n>1)&&(j==0)&&(null!=goal)) {
+                sample = goal.getPoint();
+            } else {
+                sample = new Point2D(rand.nextInt(width), rand.nextInt(height));
+            }
 
             //Nearest node
             double closestDistance = Double.MAX_VALUE;
@@ -508,12 +525,10 @@ public class MotionSpace {
                 k++;
             }
 
-            for (int j=0; j<pathSets.size(); j++) {
-                List<Point2D> path = pathSets.get(j);
-                for (int i = 0; i < path.size(); i++) {
-                    NodeRrt nodeInPathToGoal = (NodeRrt) path.get(i);
-                    if (childlessNodeRrts.contains(nodeInPathToGoal)) childlessNodeRrts.remove(nodeInPathToGoal);
-                }
+            NodeRrt node = pathRrt;
+            while (null!=node) {
+                if (childlessNodeRrts.contains(node)) childlessNodeRrts.remove(node);
+                node = node.getParent();
             }
             for (int i=0; i<newNodeRrts.size(); i++) {
                 NodeRrt newNode = newNodeRrts.get(i);
@@ -536,14 +551,7 @@ public class MotionSpace {
 
     private void checkGoal(NodeRrt node) {
         if (goal.contains(node)) {
-            List<Point2D> path = new ArrayList<>();
-            NodeRrt aux = node;
-            path.add(aux);
-            while(null != aux.getParent()) {
-                aux = aux.getParent();
-                path.add(aux);
-            }
-            pathSets.add(path);
+            pathRrt = node;
         }
     }
 

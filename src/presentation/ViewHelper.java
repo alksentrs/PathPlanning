@@ -23,7 +23,8 @@ public class ViewHelper implements JPaintListener {
     private Graph<NodePrm> graph;
     private boolean connect;
     private Goal goal;
-    private List<List<Point2D>> pathSets;
+    private List<Point2D> pathPrm;
+    private NodeRrt pathRrt;
 
     @Override
     public void paintComponent(Graphics g) {
@@ -96,21 +97,35 @@ public class ViewHelper implements JPaintListener {
             }
         }
 
-        if (null!=pathSets) {
-            for (int j=0; j<pathSets.size(); j++) {
-                List<Point2D> path = pathSets.get(j);
-                for (int i = 0; i < path.size() - 1; i++) {
-                    Point2D p1 = path.get(i);
-                    Point2D p2 = path.get(i + 1);
-                    g.setColor(Color.BLUE);
-                    g.fillOval((int) (p1.getX() - pointWidth), (int) (p1.getY() - pointWidth), 2 * pointWidth, 2 * pointWidth);
-                    g.fillOval((int) (p2.getX() - pointWidth), (int) (p2.getY() - pointWidth), 2 * pointWidth, 2 * pointWidth);
-                    g.setColor(Color.RED);
-                    Stroke strokeAux = g2d.getStroke();
-                    g2d.setStroke(new BasicStroke(2f));
-                    g2d.drawLine((int) p1.getX(), (int) p1.getY(), (int) p2.getX(), (int) p2.getY());
-                    g2d.setStroke(strokeAux);
-                }
+        if (null!=pathPrm) {
+            for (int i = 0; i < pathPrm.size() - 1; i++) {
+                Point2D p1 = pathPrm.get(i);
+                Point2D p2 = pathPrm.get(i + 1);
+                g.setColor(Color.BLUE);
+                g.fillOval((int) (p1.getX() - pointWidth), (int) (p1.getY() - pointWidth), 2 * pointWidth, 2 * pointWidth);
+                g.fillOval((int) (p2.getX() - pointWidth), (int) (p2.getY() - pointWidth), 2 * pointWidth, 2 * pointWidth);
+                g.setColor(Color.RED);
+                Stroke strokeAux = g2d.getStroke();
+                g2d.setStroke(new BasicStroke(2f));
+                g2d.drawLine((int) p1.getX(), (int) p1.getY(), (int) p2.getX(), (int) p2.getY());
+                g2d.setStroke(strokeAux);
+            }
+        }
+
+        if (null!=pathRrt) {
+            NodeRrt node = pathRrt;
+            while (null!=node.getParent()) {
+                Point2D p1 = node;
+                Point2D p2 = node.getParent();
+                g.setColor(Color.BLUE);
+                g.fillOval((int) (p1.getX() - pointWidth), (int) (p1.getY() - pointWidth), 2 * pointWidth, 2 * pointWidth);
+                g.fillOval((int) (p2.getX() - pointWidth), (int) (p2.getY() - pointWidth), 2 * pointWidth, 2 * pointWidth);
+                g.setColor(Color.RED);
+                Stroke strokeAux = g2d.getStroke();
+                g2d.setStroke(new BasicStroke(2f));
+                g2d.drawLine((int) p1.getX(), (int) p1.getY(), (int) p2.getX(), (int) p2.getY());
+                g2d.setStroke(strokeAux);
+                node = node.getParent();
             }
         }
     }
@@ -122,7 +137,8 @@ public class ViewHelper implements JPaintListener {
         nodeRrts = space.getNodes();
         nodePrms = space.getPoints();
         goal = space.getGoal();
-        pathSets = space.getPathSets();
+        pathPrm = space.getPathPrm();
+        pathRrt = space.getPathRrt();
         graph = space.getPrmGraph();
         this.connect = connect;
     }
