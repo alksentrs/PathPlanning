@@ -69,6 +69,10 @@ public class NodeRrt extends Point2D {
 
     public void setDistance(double distance) {
         this.distance = distance;
+        for (int i=0; i<childList.size(); i++) {
+            NodeRrt child = childList.get(i);
+            child.setDistance(distance+distance(child));
+        }
     }
 
     public double getHelper() {
