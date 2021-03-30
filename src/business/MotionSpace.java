@@ -64,13 +64,20 @@ public class MotionSpace {
         r3.add(new Rectangle(3 * width / 4, 5 * height / 8 + 20, 20, 2 * height / 8 - 20));
         r3.add(new Rectangle(width / 4 + 20, height / 8, 2 * width / 4 - 20, 20));
         r3.add(new Rectangle(width / 4 + 20, 7 * height / 8 - 20, 2 * width / 4 - 20, 20));
-
         r3.add(new Rectangle(width / 4 - 70, height / 8, 20, 6 * height / 8));
         r3.add(new Rectangle(3 * width / 4 + 50, height / 8, 20, 6 * height / 8));
+
+        List<Rectangle> r4 = new ArrayList<>();
+        r4.add(new Rectangle(width / 4 + 20, height / 8, 2 * width / 4 - 20, 20));
+        r4.add(new Rectangle(width / 4 + 20, 7 * height / 8 - 20, 2 * width / 4 - 20, 20));
+        r4.add(new Rectangle(3 * width / 4, height / 8, 20, 6 * height / 8));
+        r4.add(new Rectangle(width / 4, height / 8, 20, 3 * height / 8 -20));
+        r4.add(new Rectangle(width / 4, 4 * height / 8 + 20, 20, 3 * height / 8 -20));
 
         obstacleSets.add(r1);
         obstacleSets.add(r2);
         obstacleSets.add(r3);
+        obstacleSets.add(r4);
 
         reset();
     }
@@ -877,7 +884,7 @@ public class MotionSpace {
         }
     }
 
-    public void addRRTStarFNSmart(int n){
+    public void addRRTStarSmartFNInformed(int n){
         Random rand = new Random();
 
         List<NodeRrt> newNodeRrts = new ArrayList<>();
@@ -886,10 +893,23 @@ public class MotionSpace {
 
             //Sample
             Point2D sample;
-            if ((n>1)&&(j==0)&&(null!=goal)) {
+            if ((n > 1) && (j == 0) && (null != goal)) {
                 sample = goal.getPoint();
             } else {
-                sample = new Point2D(rand.nextInt(width), rand.nextInt(height));
+                if (null!=pathRrt) {
+                    Point2D start = rrtPoints.get(0);
+                    double c_min = start.distance(goal.getPoint());
+                    double c_best = pathRrt.getDistance();
+                    if (c_best>c_min) {
+                        Point2D center = new Point2D((start.getX() + goal.getPoint().getX()) / 2, (start.getY() + goal.getPoint().getY()) / 2);
+                        RealMatrix C = rotationToWorldFrame(start, goal.getPoint());
+                        sample = sample(c_best, c_min, center, C);
+                    } else {
+                        sample = new Point2D(rand.nextInt(width), rand.nextInt(height));
+                    }
+                } else {
+                    sample = new Point2D(rand.nextInt(width), rand.nextInt(height));
+                }
             }
 
             //Nearest node
