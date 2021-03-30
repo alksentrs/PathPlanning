@@ -10,6 +10,7 @@ public class NodeRrt extends Point2D {
     private static int count;
 
     private NodeRrt parent;
+    private NodeRrt parentOptimized;
     private double distance;
     private List<NodeRrt> childList = new ArrayList<>();
     private int id;
@@ -28,6 +29,14 @@ public class NodeRrt extends Point2D {
         this.parent = null;
         this.distance = 0;
         id = count++;
+    }
+
+    public NodeRrt getParentOptimized() {
+        return parentOptimized;
+    }
+
+    public void setParentOptimized(NodeRrt parentOptimized) {
+        this.parentOptimized = parentOptimized;
     }
 
     public int getId() {

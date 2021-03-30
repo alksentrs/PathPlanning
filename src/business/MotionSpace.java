@@ -389,6 +389,157 @@ public class MotionSpace {
         }
     }
 
+    public void addRRTStarSmart(int n){
+        Random rand = new Random();
+
+        for(int j = 0; j < n; j++) {
+
+            //Sample
+            Point2D sample;
+            if ((n>1)&&(j==0)&&(null!=goal)) {
+                sample = goal.getPoint();
+            } else {
+                sample = new Point2D(rand.nextInt(width), rand.nextInt(height));
+            }
+
+            //Nearest node
+            double closestDistance = Double.MAX_VALUE;
+            boolean tooClose = false;
+
+            NodeRrt closestNodeRrt = null;
+
+            for (int i = 0; i< rrtPoints.size(); i++) {
+                NodeRrt nodeRrt = rrtPoints.get(i);
+                double dist = nodeRrt.distance(sample);
+
+                if (dist < minDistance) {
+                    tooClose = true;
+                }
+
+                if (dist < closestDistance) {
+                    closestDistance = dist;
+                    closestNodeRrt = nodeRrt;
+                }
+
+            }
+
+            if (tooClose || closestNodeRrt == null) {
+                continue;
+            }
+
+            //Steer
+            double delX = RRTMultiplier * ((sample.getX() - closestNodeRrt.getX()) / closestDistance);
+            double delY = RRTMultiplier * ((sample.getY() - closestNodeRrt.getY()) / closestDistance);
+
+            Point2D newPoint = new Point2D(closestNodeRrt.getX() + delX,closestNodeRrt.getY() + delY);
+
+            //ChooseParent
+            List<NodeRrt> closeNodeRrts = new ArrayList<>();
+            int maxDist = optimiseDistance;
+
+            for (int i = 0; i< rrtPoints.size(); i++) {
+                NodeRrt nodeRrt = rrtPoints.get(i);
+                double dist = nodeRrt.distance(newPoint);
+
+                if (dist < maxDist) {
+                    nodeRrt.setHelper(dist);
+                    closeNodeRrts.add(nodeRrt);
+                }
+            }
+
+            closestNodeRrt = null;
+            double smallestDist = Double.MAX_VALUE;
+
+            for (int i = 0; i< closeNodeRrts.size(); i++) {
+                NodeRrt nodeRrt = closeNodeRrts.get(i);
+
+                boolean collision = false;
+                Line2D line = new Line2D(nodeRrt, newPoint);
+                for(int k=0; k<obstacles.size(); k++) {
+                    Rectangle r = obstacles.get(k);
+                    if (line.intersects(r)) {
+                        collision = true;
+                        break;
+                    }
+                }
+                if (!collision) {
+                    if (nodeRrt.getDistance() + nodeRrt.getHelper() < smallestDist) {
+                        smallestDist = nodeRrt.getDistance() + nodeRrt.getHelper();
+                        closestNodeRrt = nodeRrt;
+                    }
+                }
+            }
+
+            if (closestNodeRrt == null) {
+                continue;
+            }
+
+            NodeRrt toAdd = new NodeRrt(closestNodeRrt, newPoint);
+            rrtPoints.add(toAdd);
+            toAdd.addToParentChildList();
+
+            //Check goal
+            checkGoal(toAdd);
+
+            //ReWire
+            for (int i = 0; i< closeNodeRrts.size(); i++) {
+                NodeRrt nodeRrt = closeNodeRrts.get(i);
+
+                if (nodeRrt.getHelper() + toAdd.getDistance() < nodeRrt.getDistance()) {
+
+                    boolean canConnect = true;
+                    Line2D line = new Line2D(nodeRrt, newPoint);
+
+                    for(int k=0; k<obstacles.size(); k++) {
+                        Rectangle rect = obstacles.get(k);
+                        if (line.intersects(rect)) {
+                            canConnect = false;
+                            break;
+                        }
+                    }
+
+                    //Reconnect
+                    if (canConnect) {
+                        nodeRrt.removeFromParentChildList();
+                        nodeRrt.setParent(toAdd);
+                        nodeRrt.addToParentChildList();
+                        nodeRrt.setDistance(toAdd.getDistance() + nodeRrt.getHelper());
+                    }
+                }
+            }
+
+            //Optimize the path
+            if (null!=pathRrt) {
+                NodeRrt node1 = pathRrt;
+                NodeRrt node2 = null;
+                if (null!=node1.getParent()) node2 = node1.getParent().getParent();
+
+                while (null!=node2) {
+                    Line2D line = new Line2D(node1, node2);
+                    boolean canConnect = true;
+                    for(int k=0; k<obstacles.size(); k++) {
+                        Rectangle rect = obstacles.get(k);
+                        if (line.intersects(rect)) {
+                            canConnect = false;
+                            break;
+                        }
+                    }
+                    if (canConnect) {
+                        node1.setParentOptimized(node2);
+                        node2 = node2.getParent();
+                    } else {
+                        node1 = node1.getParent();
+                        if (null!=node1.getParent()) {
+                            node2 = node1.getParent().getParent();
+                        } else {
+                            node2 = null;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     public void addRRTStarFN(int n){
         Random rand = new Random();
 
@@ -544,6 +695,196 @@ public class MotionSpace {
                     childlessNodeRrts.remove(nodeToRemove);
                     lenToRemove--;
                     removeNodeRrt(nodeToRemove);
+                }
+            }
+        }
+    }
+
+    public void addRRTStarFNSmart(int n){
+        Random rand = new Random();
+
+        List<NodeRrt> newNodeRrts = new ArrayList<>();
+
+        for(int j = 0; j < n; j++) {
+
+            //Sample
+            Point2D sample;
+            if ((n>1)&&(j==0)&&(null!=goal)) {
+                sample = goal.getPoint();
+            } else {
+                sample = new Point2D(rand.nextInt(width), rand.nextInt(height));
+            }
+
+            //Nearest node
+            double closestDistance = Double.MAX_VALUE;
+            boolean tooClose = false;
+
+            NodeRrt closestNodeRrt = null;
+
+            for (int i = 0; i< rrtPoints.size(); i++) {
+                NodeRrt nodeRrt = rrtPoints.get(i);
+                double dist = nodeRrt.distance(sample);
+
+                if (dist < minDistance) {
+                    tooClose = true;
+                }
+
+                if (dist < closestDistance) {
+                    closestDistance = dist;
+                    closestNodeRrt = nodeRrt;
+                }
+
+            }
+
+            if (tooClose || closestNodeRrt == null) {
+                continue;
+            }
+
+            //Steer
+            double delX = RRTMultiplier * ((sample.getX() - closestNodeRrt.getX()) / closestDistance);
+            double delY = RRTMultiplier * ((sample.getY() - closestNodeRrt.getY()) / closestDistance);
+
+            Point2D newPoint = new Point2D(closestNodeRrt.getX() + delX,closestNodeRrt.getY() + delY);
+
+            //ChooseParent
+            List<NodeRrt> closeNodeRrts = new ArrayList<>();
+            int maxDist = optimiseDistance;
+
+            for (int i = 0; i< rrtPoints.size(); i++) {
+                NodeRrt nodeRrt = rrtPoints.get(i);
+                double dist = nodeRrt.distance(newPoint);
+
+                if (dist < maxDist) {
+                    nodeRrt.setHelper(dist);
+                    closeNodeRrts.add(nodeRrt);
+                }
+            }
+
+            closestNodeRrt = null;
+            double smallestDist = Double.MAX_VALUE;
+
+            for (int i = 0; i< closeNodeRrts.size(); i++) {
+                NodeRrt nodeRrt = closeNodeRrts.get(i);
+
+                boolean collision = false;
+                Line2D line = new Line2D(nodeRrt, newPoint);
+                for(int k=0; k<obstacles.size(); k++) {
+                    Rectangle r = obstacles.get(k);
+                    if (line.intersects(r)) {
+                        collision = true;
+                        break;
+                    }
+                }
+                if (!collision) {
+                    if (nodeRrt.getDistance() + nodeRrt.getHelper() < smallestDist) {
+                        smallestDist = nodeRrt.getDistance() + nodeRrt.getHelper();
+                        closestNodeRrt = nodeRrt;
+                    }
+                }
+            }
+
+            if (closestNodeRrt == null) {
+                continue;
+            }
+
+            NodeRrt toAdd = new NodeRrt(closestNodeRrt, newPoint);
+            rrtPoints.add(toAdd);
+            toAdd.addToParentChildList();
+
+            //Check goal
+            checkGoal(toAdd);
+
+            //ReWire
+            for (int i = 0; i< closeNodeRrts.size(); i++) {
+                NodeRrt nodeRrt = closeNodeRrts.get(i);
+
+                if (nodeRrt.getHelper() + toAdd.getDistance() < nodeRrt.getDistance()) {
+
+                    boolean canConnect = true;
+                    Line2D line = new Line2D(nodeRrt, newPoint);
+
+                    for(int k=0; k<obstacles.size(); k++) {
+                        Rectangle rect = obstacles.get(k);
+                        if (line.intersects(rect)) {
+                            canConnect = false;
+                            break;
+                        }
+                    }
+
+                    //Reconnect
+                    if (canConnect) {
+                        nodeRrt.removeFromParentChildList();
+                        nodeRrt.setParent(toAdd);
+                        nodeRrt.addToParentChildList();
+                        nodeRrt.setDistance(toAdd.getDistance() + nodeRrt.getHelper());
+                    }
+                }
+            }
+        }
+
+        if (rrtPoints.size() > rRTStarFnMaximumLength) {
+            //ForcedRemoval
+            List<NodeRrt> childlessNodeRrts = new ArrayList<>();
+
+            int lenToRemove = rrtPoints.size()-rRTStarFnMaximumLength;
+            int k = 0;
+            while (childlessNodeRrts.size() < lenToRemove) {
+                for (int i = 0; i < rrtPoints.size(); i++) {
+                    NodeRrt node = rrtPoints.get(i);
+                    if (node.getChildList().size() == k) childlessNodeRrts.add(node);
+                }
+                k++;
+            }
+
+            NodeRrt node = pathRrt;
+            while (null!=node) {
+                if (childlessNodeRrts.contains(node)) childlessNodeRrts.remove(node);
+                node = node.getParent();
+            }
+            for (int i=0; i<newNodeRrts.size(); i++) {
+                NodeRrt newNode = newNodeRrts.get(i);
+                if (childlessNodeRrts.contains(newNode)) childlessNodeRrts.remove(newNode);
+            }
+
+            lenToRemove = Math.min(lenToRemove,childlessNodeRrts.size());
+
+            if (lenToRemove <= childlessNodeRrts.size()) {
+                while (lenToRemove>0) {
+                    int toRemove = rand.nextInt(childlessNodeRrts.size());
+                    NodeRrt nodeToRemove = childlessNodeRrts.get(toRemove);
+                    childlessNodeRrts.remove(nodeToRemove);
+                    lenToRemove--;
+                    removeNodeRrt(nodeToRemove);
+                }
+            }
+        }
+
+        //Optimize the path
+        if (null!=pathRrt) {
+            NodeRrt node1 = pathRrt;
+            NodeRrt node2 = null;
+            if (null!=node1.getParent()) node2 = node1.getParent().getParent();
+
+            while (null!=node2) {
+                Line2D line = new Line2D(node1, node2);
+                boolean canConnect = true;
+                for(int k=0; k<obstacles.size(); k++) {
+                    Rectangle rect = obstacles.get(k);
+                    if (line.intersects(rect)) {
+                        canConnect = false;
+                        break;
+                    }
+                }
+                if (canConnect) {
+                    node1.setParentOptimized(node2);
+                    node2 = node2.getParent();
+                } else {
+                    node1 = node1.getParent();
+                    if (null!=node1.getParent()) {
+                        node2 = node1.getParent().getParent();
+                    } else {
+                        node2 = null;
+                    }
                 }
             }
         }

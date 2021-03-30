@@ -113,10 +113,15 @@ public class ViewHelper implements JPaintListener {
         }
 
         if (null!=pathRrt) {
-            NodeRrt node = pathRrt;
-            while (null!=node.getParent()) {
-                Point2D p1 = node;
-                Point2D p2 = node.getParent();
+            NodeRrt p1 = pathRrt;
+            while (null!=p1.getParent()) {
+
+                NodeRrt p2;
+                if (null!=p1.getParentOptimized()) {
+                    p2 = p1.getParentOptimized();
+                } else {
+                    p2 = p1.getParent();
+                }
                 g.setColor(Color.BLUE);
                 g.fillOval((int) (p1.getX() - pointWidth), (int) (p1.getY() - pointWidth), 2 * pointWidth, 2 * pointWidth);
                 g.fillOval((int) (p2.getX() - pointWidth), (int) (p2.getY() - pointWidth), 2 * pointWidth, 2 * pointWidth);
@@ -125,7 +130,8 @@ public class ViewHelper implements JPaintListener {
                 g2d.setStroke(new BasicStroke(2f));
                 g2d.drawLine((int) p1.getX(), (int) p1.getY(), (int) p2.getX(), (int) p2.getY());
                 g2d.setStroke(strokeAux);
-                node = node.getParent();
+
+                p1 = p2;
             }
         }
     }

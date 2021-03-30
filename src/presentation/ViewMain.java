@@ -38,7 +38,9 @@ public class ViewMain {
         PRM,
         RRT,
         RRTstar,
-        RRTstarFN;
+        RRTstarSmart,
+        RRTstarFN,
+        RRTstarFNSmart;
     }
 
     public void open(MotionSpace space){
@@ -83,10 +85,12 @@ public class ViewMain {
         comboBoxSearchStrategy.addItem("Probabilistic Road Map");
         comboBoxSearchStrategy.addItem("Rapidly Expanding Random Tree");
         comboBoxSearchStrategy.addItem("Rapidly Expanding Random Tree Star");
+        comboBoxSearchStrategy.addItem("Rapidly Expanding Random Tree Star Smart");
         comboBoxSearchStrategy.addItem("Rapidly Expanding Random Tree Star FN");
+        comboBoxSearchStrategy.addItem("Rapidly Expanding Random Tree Star FN Smart");
 
-        comboBoxSearchStrategy.setSelectedIndex(3);
-        strategy = Strategy.RRTstarFN;
+        comboBoxSearchStrategy.setSelectedIndex(5);
+        strategy = Strategy.RRTstarFNSmart;
 
         comboBoxSearchStrategy.addActionListener(new ActionListener() {
             @Override
@@ -97,7 +101,9 @@ public class ViewMain {
                 if(selected.equals("Probabilistic Road Map")) strategy = Strategy.PRM;
                 else if(selected.equals("Rapidly Expanding Random Tree")) strategy = Strategy.RRT;
                 else if(selected.equals("Rapidly Expanding Random Tree Star")) strategy = Strategy.RRTstar;
+                else if(selected.equals("Rapidly Expanding Random Tree Star Smart")) strategy = Strategy.RRTstarSmart;
                 else if(selected.equals("Rapidly Expanding Random Tree Star FN")) strategy = Strategy.RRTstarFN;
+                else if(selected.equals("Rapidly Expanding Random Tree Star FN Smart")) strategy = Strategy.RRTstarFNSmart;
 
                 space.reset();
                 update();
@@ -176,5 +182,7 @@ public class ViewMain {
         else if(strategy == Strategy.RRT) space.addRRT(n);
         else if(strategy == Strategy.RRTstar) space.addRRTStar(n);
         else if(strategy == Strategy.RRTstarFN) space.addRRTStarFN(n);
+        else if(strategy == Strategy.RRTstarSmart) space.addRRTStarSmart(n);
+        else if(strategy == Strategy.RRTstarFNSmart) space.addRRTStarFNSmart(n);
     }
 }
